@@ -6,8 +6,8 @@
     <title>Maria's Portfolio - LXD and AI Strategist</title>
     
     <!-- Tailwind CSS -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+    <script src="https://cdn.tailwindcss.com"></script>
+    
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -16,9 +16,6 @@
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
 
     <script>
         tailwind.config = {
@@ -27,119 +24,20 @@
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
                     },
+                    // Обновленная минималистичная бирюзово-голубая палитра
                     colors: {
-                        bg: '#F9FAFB', // Cool gray/white background
-                        primary: '#4F46E5', // Indigo 600
-                        secondary: '#10B981', // Emerald 500
-                        dark: '#111827', // Gray 900
-                        accent: '#8B5CF6', // Violet 500
+                        bg: '#F0FAFF', // Очень светлый бирюзово-голубой фон
+                        primary: '#00BCD4', // Основной акцент (Яркий циан/бирюзовый)
+                        secondary: '#0D47A1', // Дополнительный акцент (Темно-синий для контраста)
+                        dark: '#111827', // Темный текст/футер
+                        accent: '#4FC3F7', // Светло-голубой для выделения
                     }
                 }
             }
         }
 
-        // Gemini API Key (left empty, will be provided by the runtime environment)
-        const apiKey = ""; 
-        const modelName = 'gemini-2.5-flash-preview-09-2025';
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-
-        /**
-         * Async function to call the Gemini API with exponential backoff.
-         * @param {string} userQuery - The user's query.
-         * @param {string} systemPrompt - The system instruction for the model.
-         * @param {number} maxRetries - Maximum number of retries.
-         * @returns {Promise<string>} The generated text.
-         */
-        async function generateTextWithRetry(userQuery, systemPrompt, maxRetries = 3) {
-            const payload = {
-                contents: [{ parts: [{ text: userQuery }] }],
-                systemInstruction: { parts: [{ text: systemPrompt }] },
-            };
-
-            for (let attempt = 0; attempt < maxRetries; attempt++) {
-                try {
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) {
-                        // Retry for server errors (5xx) or 429 Too Many Requests
-                        if (response.status >= 500 || response.status === 429) {
-                            throw new Error(`API error with status ${response.status}. Retrying...`);
-                        }
-                        // For other non-retryable errors, exit
-                        const errorData = await response.json();
-                        throw new Error(`API request failed: ${errorData.error.message}`);
-                    }
-
-                    const result = await response.json();
-                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-                    if (text) {
-                        return text;
-                    } else {
-                        throw new Error("Received empty content from API.");
-                    }
-                } catch (error) {
-                    console.error("Gemini API call failed (attempt " + (attempt + 1) + "):", error);
-                    if (attempt < maxRetries - 1) {
-                        // Exponential backoff delay: 1s, 2s, 4s
-                        const delay = Math.pow(2, attempt) * 1000;
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                    } else {
-                        // Last attempt failed, throw final error
-                        throw new Error("Failed to get response from AI after multiple retries.");
-                    }
-                }
-            }
-        }
-
-        /**
-         * Main function to handle the LLM query.
-         */
-        async function handleLlmQuery() {
-            const queryInput = document.getElementById('llmQuery');
-            const outputArea = document.getElementById('llmOutput');
-            const generateButton = document.getElementById('generateButton');
-            const loadingIndicator = document.getElementById('loadingIndicator');
-
-            const userQuery = queryInput.value.trim();
-            if (!userQuery) {
-                outputArea.innerHTML = '<p class="text-red-500">Please enter your question.</p>';
-                return;
-            }
-
-            // Set UI state
-            outputArea.innerHTML = '';
-            loadingIndicator.classList.remove('hidden');
-            generateButton.disabled = true;
-            generateButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Generating...';
-
-            
-
-            try {
-                const generatedText = await generateTextWithRetry(userQuery, systemPrompt);
-                
-                // Formatting the output
-                outputArea.innerHTML = `
-                    <div class="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
-                        <p class="text-gray-800 whitespace-pre-wrap">${generatedText}</p>
-                    </div>
-                `;
-
-            } catch (error) {
-                outputArea.innerHTML = '<p class="text-red-500">An error occurred while calling the AI model. Please try again.</p>';
-                console.error("Final LLM Query Error:", error);
-            } finally {
-                // Restore UI state
-                loadingIndicator.classList.add('hidden');
-                generateButton.disabled = false;
-                generateButton.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Generate Response';
-            }
-        }
+        // Removed AI related functions (generateTextWithRetry, handleLlmQuery) as the assistant is removed.
         
-        // Functions for charts and interactivity
         function toggleTestimonial(id) {
             const card = document.getElementById(id);
             const button = card.querySelector('.read-more-btn');
@@ -148,10 +46,6 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Set handler for the generation button
-            document.getElementById('generateButton').addEventListener('click', handleLlmQuery);
-
-            // --- Chart 1: NESSA Growth (Bar Chart) ---
             const ctxNessa = document.getElementById('nessaChart').getContext('2d');
             const nessaChart = new Chart(ctxNessa, {
                 type: 'bar',
@@ -160,14 +54,9 @@
                     datasets: [{
                         label: 'Student Satisfaction Score (NESSA)',
                         data: [53.1, 74.7],
-                        backgroundColor: [
-                            'rgba(209, 213, 219, 0.7)',
-                            'rgba(16, 185, 129, 0.9)'
-                        ],
-                        borderColor: [
-                            'rgba(209, 213, 219, 1)',
-                            'rgba(16, 185, 129, 1)'
-                        ],
+                        // Обновленные цвета для графика
+                        backgroundColor: ['rgba(207, 216, 220, 0.7)', 'rgba(0, 188, 212, 0.9)'],
+                        borderColor: ['rgba(207, 216, 220, 1)', 'rgba(0, 188, 212, 1)'],
                         borderWidth: 1,
                         borderRadius: 5
                     }]
@@ -175,144 +64,26 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.parsed.y + '% Score';
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            grid: { display: false }
-                        },
-                        x: {
-                            grid: { display: false }
-                        }
-                    }
-                }
-            });
-
-            // --- Chart 2: Efficiency (Multi-Axis) ---
-            const ctxProfit = document.getElementById('profitChart').getContext('2d');
-            const profitChart = new Chart(ctxProfit, {
-                type: 'bar',
-                data: {
-                    labels: ['OpEx', 'Profitability'],
-                    datasets: [{
-                        label: 'Previous',
-                        data: [100, 91.4],
-                        backgroundColor: 'rgba(209, 213, 219, 0.5)',
-                        borderWidth: 0,
-                        barPercentage: 0.6
-                    }, {
-                        label: 'Current',
-                        data: [55, 98.8],
-                        backgroundColor: [
-                            'rgba(239, 68, 68, 0.8)',
-                            'rgba(79, 70, 229, 0.9)'
-                        ],
-                        borderWidth: 0,
-                        barPercentage: 0.6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'top' },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    if(context.label === 'OpEx' && context.dataset.label === 'Current') {
-                                        return 'Reduced by 45%';
-                                    }
-                                    return context.raw + '%';
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 110,
-                            display: false
-                        },
-                        x: {
-                            grid: { display: false }
-                        }
-                    }
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, max: 100, grid: { display: false } }, x: { grid: { display: false } } }
                 }
             });
         });
     </script>
 
     <style>
-        /* Custom Styles */
-        body {
-            background-color: #F9FAFB;
-            color: #1F2937;
-        }
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 500px;
-            margin-left: auto;
-            margin-right: auto;
-            height: 300px;
-            max-height: 350px;
-        }
-        .hover-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .hover-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Testimonial Card Style */
-        .testimonial-card {
-            transition: all 0.5s ease-in-out;
-            max-height: 230px; 
-            overflow: hidden;
-            cursor: pointer;
-            position: relative;
-        }
-        .testimonial-card.expanded {
-            max-height: 600px; 
-        }
-        .testimonial-fade {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background: linear-gradient(to top, rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 0));
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-        .testimonial-card.expanded .testimonial-fade {
-            opacity: 0;
-        }
-        .read-more-btn {
-            position: absolute;
-            bottom: 5px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 2px 10px;
-            font-size: 0.75rem;
-            line-height: 1rem;
-            z-index: 10;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
+        /* Бирюзово-голубой фон */
+        body { background-color: #F0FAFF; color: #1F2937; }
+        .chart-container { position: relative; width: 100%; max-width: 500px; margin: auto; height: 300px; max-height: 350px; }
+        .hover-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .hover-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); }
+        .testimonial-card { transition: all 0.5s ease-in-out; max-height: 230px; overflow: hidden; cursor: pointer; position: relative; }
+        .testimonial-card.expanded { max-height: 600px; }
+        /* Фон градиента изменен с белого на новый bg-цвет */
+        .testimonial-fade { position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: linear-gradient(to top, #F0FAFF 50%, rgba(240, 250, 255, 0)); pointer-events: none; transition: opacity 0.3s ease; }
+        .testimonial-card.expanded .testimonial-fade { opacity: 0; }
+        .read-more-btn { position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); padding: 2px 10px; font-size: 0.75rem; line-height: 1rem; z-index: 10; }
+        html { scroll-behavior: smooth; }
     </style>
 </head>
 <body class="antialiased">
@@ -325,18 +96,11 @@
                     <span class="font-bold text-xl text-primary"><i class="fa-solid fa-brain mr-2"></i>Maria's Portfolio</span>
                 </div>
                 <div class="hidden md:flex space-x-8">
-                    <a href="#ai-focus" class="text-gray-500 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">AI Focus</a>
-                    <a href="#metrics" class="text-gray-500 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">Metrics</a>
-                    <a href="#systems" class="text-gray-500 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">Systems</a>
-                    <a href="#assistant" class="text-gray-500 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">AI Assistant</a>
-                    <a href="#testimonials" class="text-gray-500 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">Testimonials</a>
-                    <a href="#global" class="text-gray-500 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">Global Experience</a>
-                </div>
-                <!-- Mobile Menu (Simplified) -->
-                <div class="md:hidden">
-                    <button class="text-gray-500 hover:text-primary focus:outline-none">
-                        <i class="fa-solid fa-bars"></i>
-                    </button>
+                    <a href="#about" class="text-gray-500 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">About</a>
+                    <a href="#case1" class="text-gray-500 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">Case 1: Product</a>
+                    <a href="#case2" class="text-gray-500 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">Case 2: AI</a>
+                    <a href="#case3" class="text-gray-500 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">Case 3: Engage</a>
+                    <a href="#global" class="text-gray-500 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">Global</a>
                 </div>
             </div>
         </div>
@@ -346,452 +110,285 @@
     <section class="bg-white border-b border-gray-100">
         <div class="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8 flex flex-col items-center gap-10">
             <div class="text-center md:w-full">
-                <span class="inline-flex items-center rounded-full bg-indigo-100 px-3 py-0.5 text-sm font-medium text-indigo-800 mb-4">
-                    <i class="fa-solid fa-bolt mr-2"></i> The Ideal Candidate for Tixu.ai
-                </span>
                 <h1 class="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
                     <span class="block">Maria Molokova</span>
                     <span class="block text-primary">Senior LXD & AI Strategist</span>
                 </h1>
                 <p class="mt-4 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:max-w-3xl">
-                    I transform complex AI concepts into engaging, practical mobile learning applications. I build educational systems that directly impact business metrics.
+                    Turning complex concepts into engaging, bite-sized learning experiences.
                 </p>
                 <div class="mt-8 flex justify-center gap-4">
-                    <a href="#metrics" class="flex items-center justify-center rounded-md border border-transparent bg-primary px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 md:py-4 md:px-10 md:text-lg shadow-lg hover:shadow-xl transition-all">
-                        View Results
-                    </a>
-                    <a href="#ai-focus" class="flex items-center justify-center rounded-md border border-transparent bg-indigo-100 px-8 py-3 text-base font-medium text-indigo-700 hover:bg-indigo-200 md:py-4 md:px-10 md:text-lg">
-                        AI Projects
+                    <!-- Обновлен цвет кнопки -->
+                    <a href="#about" class="flex items-center justify-center rounded-md border border-transparent bg-primary px-8 py-3 text-base font-medium text-white hover:bg-[#0097A7] md:py-4 md:px-10 md:text-lg shadow-lg hover:shadow-xl transition-all">
+                        See My Journey
                     </a>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Section 1: AI Focus -->
-    <section id="ai-focus" class="py-16 bg-gray-50">
+    <!-- Slide 2: About Me (The 30-Second Skim) -->
+    <section id="about" class="py-16 bg-bg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
-                <h2 class="text-base font-semibold text-primary tracking-wide uppercase">Current Focus</h2>
-                <p class="mt-2 text-3xl font-bold leading-8 tracking-tight text-gray-900 sm:text-4xl">Designing the Future of AI Learning</p>
+                <h2 class="text-base font-semibold text-primary tracking-wide uppercase">About Me</h2>
+                <p class="mt-2 text-3xl font-bold leading-8 tracking-tight text-gray-900 sm:text-4xl">The 30-Second Skim</p>
                 <p class="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
-                    I am actively creating exactly what Tixu.ai needs: practical, applied AI courses for diverse audiences.
+                    I sit at the intersection of Creative Arts, EdTech, and AI. With 10+ years in education, I don’t just write courses—I design experiences that stick.
                 </p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Project Card 1 -->
-                <div class="bg-white rounded-2xl shadow-sm p-8 hover-card border border-gray-100">
-                    <div class="flex items-center mb-4">
-                        <div class="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 mr-4">
-                            <i class="fa-solid fa-robot text-2xl"></i>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900">Low-Code AI for Business</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Icon 1: Art/Education (Геометрия Баухаус: Квадрат и Круг) -->
+                <div class="bg-white p-8 rounded-xl shadow-md text-center hover-card">
+                    <div class="w-16 h-16 bg-cyan-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-cyan-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="5" y="5" width="14" height="14" stroke-linecap="round" stroke-linejoin="round" />
+                            <circle cx="12" cy="12" r="4" fill="currentColor" stroke="none" />
+                        </svg>
                     </div>
-                    <p class="text-gray-600 mb-6">Translating technical complexity into simple, practical steps for business automation.</p>
-                    
-                    <div class="mb-4">
-                        <span class="text-sm font-semibold text-gray-500 uppercase tracking-wider block mb-2">Technologies</span>
-                        <div class="flex flex-wrap gap-2">
-                            <span class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">GPT Agents</span>
-                            <span class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">n8n</span>
-                            <span class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">Make</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
-                        <p class="text-sm text-blue-800 font-medium">
-                            <i class="fa-solid fa-lightbulb mr-2"></i> Format: Hands-on scenarios for automating real-world workflows.
-                        </p>
-                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">15+ Years in Education</h3>
+                    <p class="text-gray-600">From Art Pedagogy to EdTech. I turn "boring" theory into interactive "learn-by-doing" scenarios.</p>
                 </div>
 
-                <!-- Project Card 2 -->
-                <div class="bg-white rounded-2xl shadow-sm p-8 hover-card border border-gray-100">
-                    <div class="flex items-center mb-4">
-                        <div class="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 mr-4">
-                            <i class="fa-solid fa-code text-2xl"></i>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900">Neural Networks for Developers</h3>
+                <!-- Icon 2: Tech/AI (Геометрия Баухаус: Поток данных/Соединение) -->
+                <div class="bg-white p-8 rounded-xl shadow-md text-center hover-card">
+                    <div class="w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-accent" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="3" y="3" width="8" height="8"/>
+                            <rect x="13" y="13" width="8" height="8"/>
+                            <line x1="11" y1="7" x2="13" y2="17"/>
+                        </svg>
                     </div>
-                    <p class="text-gray-600 mb-6">Deep backend integration courses designed to elevate technical proficiency.</p>
-                    
-                    <div class="mb-4">
-                        <span class="text-sm font-semibold text-gray-500 uppercase tracking-wider block mb-2">Technologies</span>
-                        <div class="flex flex-wrap gap-2">
-                            <span class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">Cursor IDE</span>
-                            <span class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">Backend Integration</span>
-                            <span class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">LLM API</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-purple-50 p-4 rounded-lg border-l-4 border-purple-500">
-                        <p class="text-sm text-purple-800 font-medium">
-                            <i class="fa-solid fa-keyboard mr-2"></i> Approach: Practical coding assignments and interactive challenges.
-                        </p>
-                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">AI-Native & Tech</h3>
+                    <p class="text-gray-600">Currently building courses on Low-code (n8n, Agents) and AI for Developers (Cursor).</p>
                 </div>
-            </div>
 
-            <!-- Tools -->
-            <div class="mt-12 text-center">
-                <p class="text-sm text-gray-400 uppercase tracking-widest mb-4">Tools I Use Daily</p>
-                <div class="flex justify-center gap-6 text-3xl text-gray-400">
-                    <i class="fa-solid fa-microchip" title="ChatGPT/LLMs"></i>
-                    <i class="fa-solid fa-image" title="Midjourney"></i>
-                    <i class="fa-solid fa-terminal" title="Cursor"></i>
-                    <i class="fa-solid fa-project-diagram" title="Miro"></i>
-                    <i class="fa-solid fa-file-lines" title="Notion"></i>
+                <!-- Icon 3: Metrics (Геометрия Баухаус: График роста) -->
+                <div class="bg-white p-8 rounded-xl shadow-md text-center hover-card">
+                    <div class="w-16 h-16 bg-secondary/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-secondary" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <polyline points="21 16 14 9 9 14 3 8" />
+                            <circle cx="21" cy="16" r="1.5" fill="currentColor" stroke="none" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Metric-Obsessed</h3>
+                    <p class="text-gray-600">I design for NESSA, Retention, and ROI. My superpower is driving measurable growth.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Section 2: Metrics Dashboard -->
-    <section id="metrics" class="py-16 bg-white">
+    <!-- Slide 3: Case Study 1 — The "Product" Turnaround -->
+    <section id="case1" class="py-16 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
-                <h2 class="text-base font-semibold text-secondary tracking-wide uppercase">The Proof: Skillfactory Case Study</h2>
-                <p class="mt-2 text-3xl font-bold leading-8 tracking-tight text-gray-900 sm:text-4xl">Metric Movement and Business Growth</p>
-                <p class="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
-                    I led the full course production cycle, ensuring measurable business impact through iterative content improvement.
-                </p>
+                <h2 class="text-base font-semibold text-secondary tracking-wide uppercase">Case Study 1</h2>
+                <p class="mt-2 text-3xl font-bold leading-8 tracking-tight text-gray-900 sm:text-4xl">The "Product" Turnaround</p>
+                <p class="mt-4 text-gray-500">Project: Higher Ed Product Relaunch (Skillfactory)</p>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                
-                <!-- Chart 1: NESSA Growth -->
-                <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
-                    <h3 class="text-lg font-bold text-gray-800 mb-2">Student Satisfaction Growth (NESSA)</h3>
-                    <p class="text-sm text-gray-500 mb-4">Iterative improvements drove satisfaction up by 40.7%.</p>
-                    <div class="chart-container">
+            <div class="flex flex-col lg:flex-row gap-12 items-center">
+                <!-- Text Content -->
+                <div class="lg:w-1/2">
+                    <div class="mb-6">
+                        <h4 class="text-lg font-bold text-red-500 mb-2"><i class="fa-solid fa-triangle-exclamation mr-2"></i>Challenge</h4>
+                        <p class="text-gray-600">A high-stakes program suffered from low engagement (NESSA 53.1) and high operational costs.</p>
+                    </div>
+                    <div class="mb-6">
+                        <!-- Обновлен цвет -->
+                        <h4 class="text-lg font-bold text-primary mb-2"><i class="fa-solid fa-lightbulb mr-2"></i>Solution</h4>
+                        <ul class="list-disc pl-5 text-gray-600 space-y-2">
+                            <li><strong>Audit & Pivot:</strong> Identified disconnect between theory and practice.</li>
+                            <li><strong>Action:</strong> Shifted to Project-Based Learning (PBL). Redesigned webinars from "lectures" into interactive workshops.</li>
+                            <li><strong>Optimization:</strong> Streamlined homework review process to cut steps without losing quality.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Metrics Visualization -->
+                <div class="lg:w-1/2 bg-bg p-8 rounded-2xl border border-gray-100">
+                    <h3 class="text-xl font-bold text-gray-800 mb-6 text-center">Key Results</h3>
+                    <div class="space-y-6">
+                        <div class="flex justify-between items-center border-b border-gray-200 pb-4">
+                            <span class="text-gray-600">Learning Satisfaction</span>
+                            <!-- Обновлен цвет -->
+                            <span class="text-2xl font-bold text-secondary">+40.7% <span class="text-sm text-gray-400 font-normal">(53.1 to 74.7)</span></span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-gray-200 pb-4">
+                            <span class="text-gray-600">Operational Expenses</span>
+                            <!-- Обновлен цвет -->
+                            <span class="text-2xl font-bold text-primary">-45% <span class="text-sm text-gray-400 font-normal">(Optimized)</span></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Profitability</span>
+                            <!-- Обновлен цвет -->
+                            <span class="text-2xl font-bold text-accent">98.8% <span class="text-sm text-gray-400 font-normal">(from 91.4%)</span></span>
+                        </div>
+                    </div>
+                    <!-- Small Chart -->
+                    <div class="mt-6 h-48">
                         <canvas id="nessaChart"></canvas>
                     </div>
-                    <div class="mt-4 text-center">
-                        <span class="text-3xl font-bold text-secondary">+40.7%</span>
-                        <span class="text-gray-500 text-sm">Improvement</span>
-                    </div>
-                </div>
-
-                <!-- Chart 2: Profitability and OpEx -->
-                <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
-                    <h3 class="text-lg font-bold text-gray-800 mb-2">Operational Efficiency & Profitability</h3>
-                    <p class="text-sm text-gray-500 mb-4">Reducing costs while simultaneously boosting margin.</p>
-                    <div class="chart-container">
-                        <canvas id="profitChart"></canvas>
-                    </div>
-                     <div class="mt-4 flex justify-around text-center">
-                        <div>
-                            <span class="block text-3xl font-bold text-red-500">-45%</span>
-                            <span class="text-gray-500 text-sm">OpEx Reduction</span>
-                        </div>
-                        <div>
-                            <span class="block text-3xl font-bold text-green-600">98.8%</span>
-                            <span class="text-gray-500 text-sm">Profitability</span>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Hiring Statistic -->
-            <div class="mt-10 bg-indigo-900 rounded-xl p-8 text-white flex flex-col md:flex-row items-center justify-between shadow-2xl">
-                <div class="mb-6 md:mb-0">
-                    <h3 class="text-2xl font-bold"><i class="fa-solid fa-briefcase mr-3"></i>Hiring Impact</h3>
-                    <p class="text-indigo-200 mt-2">Graduates found jobs 2x faster due to my practice-oriented learning strategy.</p>
-                </div>
-                <div class="text-5xl font-extrabold text-yellow-400">
-                    2x <span class="text-xl font-normal text-white">Faster Hiring</span>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Section 3: Systems Building -->
-    <section id="systems" class="py-16 bg-gray-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="mb-12">
-                <h2 class="text-base font-semibold text-primary tracking-wide uppercase">Strategic Autonomy</h2>
-                <p class="mt-2 text-3xl font-bold leading-8 tracking-tight text-gray-900 sm:text-4xl">Building L&D Ecosystems from Scratch</p>
-                <p class="mt-4 text-lg text-gray-600">
-                    At "Learning Environment," I launched 3 new faculties (including Photography and Contemporary Art), managing the entire lifecycle.
-                </p>
-            </div>
-
-            <!-- Process -->
-            <div class="relative">
-                <!-- Vertical Line -->
-                <div class="hidden md:block absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-gray-200"></div>
-
-                <div class="space-y-12">
-                    <!-- Step 1 -->
-                    <div class="relative flex flex-col md:flex-row items-center">
-                        <div class="flex-1 md:w-1/2 md:pr-10 md:text-right mb-4 md:mb-0">
-                            <h3 class="text-xl font-bold text-gray-900">1. Strategy and Analysis</h3>
-                            <p class="text-gray-600 mt-2">Developed the complete L&D strategy and curriculum from the ground up based on market needs.</p>
-                        </div>
-                        <div class="z-10 flex items-center justify-center w-12 h-12 bg-primary rounded-full border-4 border-white shadow-lg shrink-0">
-                            <i class="fa-solid fa-chess-knight text-white"></i>
-                        </div>
-                        <div class="flex-1 md:w-1/2 md:pl-10"></div>
-                    </div>
-
-                    <!-- Step 2 -->
-                    <div class="relative flex flex-col md:flex-row items-center">
-                        <div class="flex-1 md:w-1/2 md:pr-10"></div>
-                        <div class="z-10 flex items-center justify-center w-12 h-12 bg-accent rounded-full border-4 border-white shadow-lg shrink-0">
-                            <i class="fa-solid fa-users text-white"></i>
-                        </div>
-                        <div class="flex-1 md:w-1/2 md:pl-10 md:text-left mb-4 md:mb-0">
-                            <h3 class="text-xl font-bold text-gray-900">2. Expert Acquisition</h3>
-                            <p class="text-gray-600 mt-2">Hired and trained over 200 Subject Matter Experts (SMEs), establishing standardized guidelines.</p>
-                        </div>
-                    </div>
-
-                    <!-- Step 3 -->
-                    <div class="relative flex flex-col md:flex-row items-center">
-                        <div class="flex-1 md:w-1/2 md:pr-10 md:text-right mb-4 md:mb-0">
-                            <h3 class="text-xl font-bold text-gray-900">3. Innovation (PBL)</h3>
-                            <p class="text-gray-600 mt-2">Implemented Project-Based Learning (PBL) frameworks, adopted company-wide.</p>
-                        </div>
-                        <div class="z-10 flex items-center justify-center w-12 h-12 bg-secondary rounded-full border-4 border-white shadow-lg shrink-0">
-                            <i class="fa-solid fa-lightbulb text-white"></i>
-                        </div>
-                        <div class="flex-1 md:w-1/2 md:pl-10"></div>
-                    </div>
-
-                    <!-- Step 4 -->
-                    <div class="relative flex flex-col md:flex-row items-center">
-                        <div class="flex-1 md:w-1/2 md:pr-10"></div>
-                        <div class="z-10 flex items-center justify-center w-12 h-12 bg-green-600 rounded-full border-4 border-white shadow-lg shrink-0">
-                            <i class="fa-solid fa-trophy text-white"></i>
-                        </div>
-                        <div class="flex-1 md:w-1/2 md:pl-10 md:text-left">
-                            <h3 class="text-xl font-bold text-gray-900">4. Outcome</h3>
-                            <p class="text-gray-600 mt-2">Managed over 1000 students across 4 faculties. New strategy <strong>doubled</strong> enrollment and revenue.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    
-    <!-- Section 4: AI Portfolio Assistant (NEW SECTION) -->
-    <section id="assistant" class="py-16 bg-white border-t border-gray-100">
+    <!-- Slide 4: Case Study 2 — AI & Tech Integration -->
+    <section id="case2" class="py-16 bg-dark text-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
-                <h2 class="text-base font-semibold text-accent tracking-wide uppercase">Interactive Tool</h2>
-                <p class="mt-2 text-3xl font-bold text-gray-900">AI Portfolio Assistant</p>
-                <p class="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
-                    Ask a question about my experience or request a brief summary, generated based on the portfolio data using the Gemini API.
-                </p>
+                <h2 class="text-base font-semibold text-accent tracking-wide uppercase">Case Study 2</h2>
+                <p class="mt-2 text-3xl font-bold leading-8 tracking-tight text-white sm:text-4xl">AI & Tech Integration</p>
+                <p class="mt-4 text-gray-400">Project: AI Integration & Tech Content Production</p>
             </div>
 
-            <div class="max-w-3xl mx-auto bg-gray-50 p-8 rounded-xl shadow-lg border border-gray-200">
-                <!-- Input Field -->
-                <div class="mb-4">
-                    <label for="llmQuery" class="block text-sm font-medium text-gray-700 mb-2">Your Query:</label>
-                    <input type="text" id="llmQuery" 
-                           placeholder="Ask a question about Maria's skills or request a brief summary..." 
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary transition-all shadow-sm">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div class="bg-gray-800 p-8 rounded-xl border border-gray-700">
+                    <h3 class="text-xl font-bold text-accent mb-4">The Solution</h3>
+                    <ul class="space-y-4 text-gray-300">
+                        <li class="flex items-start">
+                            <!-- Обновлен цвет иконки -->
+                            <i class="fa-solid fa-microchip mt-1 mr-3 text-accent"></i>
+                            <div><strong>AI Workflow:</strong> Integrated Neural Networks/LLMs into daily workflow for creating quizzes, summaries, and structure.</div>
+                        </li>
+                        <li class="flex items-start">
+                             <!-- Обновлен цвет иконки -->
+                            <i class="fa-solid fa-code mt-1 mr-3 text-accent"></i>
+                            <div><strong>Current Projects:</strong> Developing technical courses on Low-code for Business (GPT, Agents, Make) and AI for Developers (Cursor).</p></div>
+                        </li>
+                        <li class="flex items-start">
+                             <!-- Обновлен цвет иконки -->
+                            <i class="fa-solid fa-users-gear mt-1 mr-3 text-accent"></i>
+                            <div><strong>Community Upskilling:</strong> Led workshops for internal teams on "How to use AI in coordination and ops."</div>
+                        </li>
+                    </ul>
                 </div>
 
-                <!-- Button and Loading Indicator -->
-                <button id="generateButton" onclick="handleLlmQuery()" 
-                        class="w-full flex items-center justify-center rounded-lg border border-transparent bg-primary px-4 py-3 text-base font-medium text-white hover:bg-indigo-700 transition-all shadow-md hover:shadow-lg disabled:bg-indigo-400">
-                    <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Generate Response
-                </button>
-                
-                <div id="loadingIndicator" class="hidden mt-4 text-center text-primary">
-                    <i class="fa-solid fa-spinner fa-spin mr-2"></i> Generating, please wait...
-                </div>
-
-                <!-- Output Area -->
-                <div class="mt-6">
-                    <h3 class="text-lg font-bold text-gray-800 mb-2">Assistant's Response:</h3>
-                    <div id="llmOutput" class="min-h-[100px] p-4 bg-white rounded-lg border border-gray-300 shadow-inner">
-                        <p class="text-gray-500">The AI Assistant's response will appear here...</p>
+                <div class="flex flex-col justify-center space-y-6">
+                    <div class="bg-gray-800 p-6 rounded-lg border-l-4 border-secondary">
+                        <h4 class="text-lg font-bold text-white">Result: Speed</h4>
+                        <p class="text-gray-400">Drastically reduced TTM (Time to Market) for new modules.</p>
+                    </div>
+                    <div class="bg-gray-800 p-6 rounded-lg border-l-4 border-primary">
+                        <h4 class="text-lg font-bold text-white">Result: Culture</h4>
+                        <p class="text-gray-400">Built a culture of AI adoption within the team.</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Section 5: Engagement and Philosophy -->
-    <section class="py-16 bg-indigo-50 border-t border-gray-100">
+    <!-- Slide 5: Case Study 3 — Engagement & Storytelling -->
+    <section id="case3" class="py-16 bg-bg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
-                <h2 class="text-base font-semibold text-accent tracking-wide uppercase">Philosophy</h2>
-                <p class="mt-2 text-3xl font-bold text-gray-900">Engagement Engineering</p>
-                <p class="mt-4 text-gray-500">No boring lectures. Focus on Storytelling, Community, and Practice.</p>
+                <h2 class="text-base font-semibold text-primary tracking-wide uppercase">Case Study 3</h2>
+                <p class="mt-2 text-3xl font-bold leading-8 tracking-tight text-gray-900 sm:text-4xl">Engagement & Storytelling</p>
+                <p class="mt-4 text-gray-500">Project: "Authors" System & Podcast Collaboration</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Card 1 -->
-                <div class="bg-gray-50 p-6 rounded-lg text-center hover:bg-white hover:shadow-lg transition-all border border-transparent hover:border-gray-200">
-                    <div class="text-accent text-4xl mb-4"><i class="fa-solid fa-gamepad"></i></div>
-                    <h3 class="text-lg font-bold mb-2">Interactive Formats</h3>
-                    <p class="text-gray-600 text-sm">Replaced webinars with hackathons and live case studies. Attendance grew <strong>10x</strong>.</p>
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <div class="text-red-500 text-2xl mb-3"><i class="fa-solid fa-fire"></i></div>
+                    <h3 class="font-bold text-lg mb-2">The Challenge</h3>
+                    <p class="text-gray-600 text-sm">Expert content was dry, and Subject Matter Experts (SMEs) were burnt out or hard to manage.</p>
                 </div>
-
                 <!-- Card 2 -->
-                <div class="bg-gray-50 p-6 rounded-lg text-center hover:bg-white hover:shadow-lg transition-all border border-transparent hover:border-gray-200">
-                    <div class="text-accent text-4xl mb-4"><i class="fa-solid fa-heart"></i></div>
-                    <h3 class="text-lg font-bold mb-2">Human-Centricity</h3>
-                    <p class="text-gray-600 text-sm">Use somatic awareness and empathy to prevent burnout, ensuring timely project completion.</p>
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <!-- Обновлен цвет иконки -->
+                    <div class="text-primary text-2xl mb-3"><i class="fa-solid fa-microphone-lines"></i></div>
+                    <h3 class="font-bold text-lg mb-2">The Solution</h3>
+                    <p class="text-gray-600 text-sm">Collaborated with "Either/Or" (Libo-Libo) podcast to mix technical theory with personal storytelling. Built a fun onboarding system for SMEs.</p>
                 </div>
-
                 <!-- Card 3 -->
-                <div class="bg-gray-50 p-6 rounded-lg text-center hover:bg-white hover:shadow-lg transition-all border border-transparent hover:border-gray-200">
-                    <div class="text-accent text-4xl mb-4"><i class="fa-solid fa-comments"></i></div>
-                    <h3 class="text-lg font-bold mb-2">Community Building</h3>
-                    <p class="text-gray-600 text-sm">Created a mentorship support system, achieving a <strong>100% NPS</strong> among expert authors.</p>
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <!-- Обновлен цвет иконки -->
+                    <div class="text-secondary text-2xl mb-3"><i class="fa-solid fa-star"></i></div>
+                    <h3 class="font-bold text-lg mb-2">The Results</h3>
+                    <p class="text-gray-600 text-sm"><strong>100% Author NPS.</strong> Webinar attendance jumped from 1–2 students to <strong>15–20</strong> per session.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Section 6: Author Testimonials -->
-    <section id="testimonials" class="py-16 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-12">
-                <h2 class="text-base font-semibold text-primary tracking-wide uppercase">Peer and Author Reviews</h2>
-                <p class="mt-2 text-3xl font-bold leading-8 tracking-tight text-gray-900 sm:text-4xl">Collaboration and Communication Skills</p>
-                <p class="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
-                    Feedback from the experts I've worked with highlights systemic thinking, clarity, and client-focus. Click on a card to read the full testimonial.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                
-                <!-- Testimonial Card 1: Ulyana Yarygina -->
-                <div id="t1" class="testimonial-card bg-gray-50 p-6 rounded-xl shadow-lg hover:shadow-2xl border border-gray-100 transition-shadow duration-300" onclick="toggleTestimonial('t1')">
-                    <i class="fa-solid fa-quote-left text-primary text-2xl mb-4"></i>
-                    <p class="text-gray-700 italic text-base mb-4">
-                        “Masha, it's a pleasure working with you—structured, consistent, responsible, and sincerely focused on quality results. Thank you very much! I would be happy to repeat our collaboration.”
-                    </p>
-                    <div class="mt-4 pt-2 border-t border-gray-200">
-                        <p class="font-semibold text-gray-900">Ulyana Yarygina</p>
-                        <p class="text-sm text-primary">Interior Designer</p>
-                    </div>
-                    <div class="testimonial-fade bg-gray-50"></div>
-                    <button class="read-more-btn bg-primary text-white rounded-full hover:bg-indigo-700">Read Full Testimonial</button>
-                </div>
-
-                <!-- Testimonial Card 2: Maria Kipriyanova -->
-                <div id="t2" class="testimonial-card bg-gray-50 p-6 rounded-xl shadow-lg hover:shadow-2xl border border-gray-100 transition-shadow duration-300" onclick="toggleTestimonial('t2')">
-                    <i class="fa-solid fa-quote-left text-primary text-2xl mb-4"></i>
-                    <p class="text-gray-700 italic text-base mb-4">
-                        “I worked with Maria on the module "Finishing Materials..." The collaboration went smoothly and quickly—she instantly incorporated the few necessary edits. Thanks to Maria, we kept the clear core idea of the module and did not deviate from the goals. Her approach really helped me while writing the content.”
-                    </p>
-                    <div class="mt-4 pt-2 border-t border-gray-200">
-                        <p class="font-semibold text-gray-900">Maria Kipriyanova</p>
-                        <p class="text-sm text-primary">Interior Designer</p>
-                    </div>
-                    <div class="testimonial-fade bg-gray-50"></div>
-                    <button class="read-more-btn bg-primary text-white rounded-full hover:bg-indigo-700">Read Full Testimonial</button>
-                </div>
-                
-                <!-- Testimonial Card 3: Maria Bobyleva -->
-                <div id="t3" class="testimonial-card bg-gray-50 p-6 rounded-xl shadow-lg hover:shadow-2xl border border-gray-100 transition-shadow duration-300" onclick="toggleTestimonial('t3')">
-                    <i class="fa-solid fa-quote-left text-primary text-2xl mb-4"></i>
-                    <p class="text-gray-700 italic text-base mb-4">
-                        “I worked with Maria on a job search course for IT specialists and was absolutely delighted with the collaboration—it's a 100% match. Masha is incredibly systemic and client-focused; she truly hears your needs and manages partnership communication excellently. It's always a win-win with her, and that sets her apart as a methodologist. I was always amazed by her speed—both in answering questions and editing texts. Masha, you are the best. I wish you success in everything!”
-                    </p>
-                    <div class="mt-4 pt-2 border-t border-gray-200">
-                        <p class="font-semibold text-gray-900">Maria Bobyleva</p>
-                        <p class="text-sm text-primary">Career Coach, HR BP</p>
-                    </div>
-                    <div class="testimonial-fade bg-gray-50"></div>
-                    <button class="read-more-btn bg-primary text-white rounded-full hover:bg-indigo-700">Read Full Testimonial</button>
-                </div>
-
-                 <!-- Testimonial Card 4: Alina Panshina -->
-                <div id="t4" class="testimonial-card bg-gray-50 p-6 rounded-xl shadow-lg hover:shadow-2xl border border-gray-100 transition-shadow duration-300" onclick="toggleTestimonial('t4')">
-                    <i class="fa-solid fa-quote-left text-primary text-2xl mb-4"></i>
-                    <p class="text-gray-700 italic text-base mb-4">
-                        “Working with Masha was a pure pleasure—everything was clear, structured, and to the point. At the same time, the communication was easy and human. You can trust her with part of the methodology while retaining sufficient creative freedom as an author.”
-                    </p>
-                    <div class="mt-4 pt-2 border-t border-gray-200">
-                        <p class="font-semibold text-gray-900">Alina Panshina</p>
-                        <p class="text-sm text-primary">Illustrator</p>
-                    </div>
-                    <div class="testimonial-fade bg-gray-50"></div>
-                    <button class="read-more-btn bg-primary text-white rounded-full hover:bg-indigo-700">Read Full Testimonial</button>
-                </div>
-
-                <!-- Testimonial Card 5: Alena Kharitonova -->
-                <div id="t5" class="testimonial-card bg-gray-50 p-6 rounded-xl shadow-lg hover:shadow-2xl border border-gray-100 transition-shadow duration-300" onclick="toggleTestimonial('t5')">
-                    <i class="fa-solid fa-quote-left text-primary text-2xl mb-4"></i>
-                    <p class="text-gray-700 italic text-base mb-4">
-                        “Maria approached every question professionally. Working with her is a true pleasure: all communication and problem-solving happened in a warm atmosphere, and her advice was always valuable. I will be happy to collaborate with Maria again.”
-                    </p>
-                    <div class="mt-4 pt-2 border-t border-gray-200">
-                        <p class="font-semibold text-gray-900">Alena Kharitonova</p>
-                        <p class="text-sm text-primary">Editing Director</p>
-                    </div>
-                    <div class="testimonial-fade bg-gray-50"></div>
-                    <button class="read-more-btn bg-primary text-white rounded-full hover:bg-indigo-700">Read Full Testimonial</button>
-                </div>
-
-                <!-- Testimonial Card 6: Sergey (10/5 Score) -->
-                <div id="t6" class="testimonial-card bg-gray-50 p-6 rounded-xl shadow-lg hover:shadow-2xl border border-gray-100 transition-shadow duration-300 expanded">
-                    <i class="fa-solid fa-star text-yellow-500 text-2xl mb-4"></i>
-                    <p class="text-gray-700 italic text-base mb-4 text-center">
-                        <span class="text-6xl font-extrabold text-primary block leading-none">10/5</span>
-                        <span class="text-xl font-medium block mt-2">No written comment.</span>
-                    </p>
-                    <div class="mt-4 pt-2 border-t border-gray-200">
-                        <p class="font-semibold text-gray-900">Sergey</p>
-                        <p class="text-sm text-primary">Course Author</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Section 7: Global Experience -->
-    <section id="global" class="py-16 bg-gray-50 border-t border-gray-100">
+    <!-- Slide 6: English & International Experience -->
+    <section id="global" class="py-16 bg-white border-t border-gray-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-10">
-                <h2 class="text-3xl font-bold text-gray-900">Global Mindset</h2>
-                <p class="mt-2 text-gray-600">Full professional proficiency in English. Adaptability across diverse cultures.</p>
+                <h2 class="text-3xl font-bold text-gray-900">English & International Experience</h2>
+                <p class="mt-2 text-gray-600">Proving I can work effectively in your target language and markets.</p>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                <div class="bg-white p-6 rounded-xl shadow-sm flex items-start space-x-4">
+                <div class="bg-bg p-8 rounded-xl shadow-sm flex items-start space-x-4">
                     <div class="flex-shrink-0">
-                        <i class="fa-solid fa-flag-usa text-3xl text-red-500"></i>
+                        <!-- Обновлен цвет иконки -->
+                        <i class="fa-solid fa-flag-usa text-4xl text-primary"></i>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-gray-900">US Market</h3>
-                        <p class="text-gray-600 mt-1">Conducted deep Training Needs Analysis (TNA) and competitive analysis (Udemy, Domestika) for a design course launch in the USA.</p>
+                        <h3 class="text-xl font-bold text-gray-900">US Market Strategy</h3>
+                        <p class="text-gray-600 mt-2">Conducted deep competitor research (Udemy, Domestika) for a US-focused design course to validate product-market fit.</p>
                     </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-xl shadow-sm flex items-start space-x-4">
+                <div class="bg-bg p-8 rounded-xl shadow-sm flex items-start space-x-4">
                     <div class="flex-shrink-0">
-                        <i class="fa-solid fa-earth-europe text-3xl text-blue-500"></i>
+                        <!-- Обновлен цвет иконки -->
+                        <i class="fa-solid fa-earth-europe text-4xl text-secondary"></i>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-gray-900">Europe (Spain)</h3>
-                        <p class="text-gray-600 mt-1">Managed cross-cultural communication and production for an exhibition project in Barcelona.</p>
+                        <h3 class="text-xl font-bold text-gray-900">EU Collaboration</h3>
+                        <p class="text-gray-600 mt-2">Managed an exhibition project in Barcelona (Spain), navigating cultural differences and coordinating production in English.</p>
                     </div>
+                </div>
+            </div>
+            <div class="text-center mt-8">
+                <!-- Обновлен цвет плашки -->
+                <span class="inline-flex items-center px-4 py-2 rounded-full bg-secondary/20 text-secondary font-medium">
+                    <i class="fa-solid fa-check mr-2"></i> Bilingual Content Proficiency
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section id="testimonials" class="py-16 bg-bg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-base font-semibold text-primary tracking-wide uppercase">Peer Reviews</h2>
+                <p class="mt-2 text-3xl font-bold text-gray-900">What People Say</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Обновлен цвет кнопки -->
+                <div id="t1" class="testimonial-card bg-white p-6 rounded-xl border hover:shadow-lg transition cursor-pointer" onclick="toggleTestimonial('t1')">
+                    <p class="italic text-gray-600">“Masha, it's a pleasure working with you—structured, consistent, responsible...”</p>
+                    <div class="mt-4 font-bold">- Ulyana Yarygina, Interior Designer</div>
+                    <button class="read-more-btn bg-primary/20 text-primary px-2 py-1 rounded text-xs mt-2">Read Full</button>
+                </div>
+                <!-- Обновлен цвет кнопки -->
+                <div id="t2" class="testimonial-card bg-white p-6 rounded-xl border hover:shadow-lg transition cursor-pointer" onclick="toggleTestimonial('t2')">
+                    <p class="italic text-gray-600">“I worked with Maria on a job search course... it's a 100% match. Masha is incredibly systemic...”</p>
+                    <div class="mt-4 font-bold">- Maria Bobyleva, HR BP</div>
+                    <button class="read-more-btn bg-primary/20 text-primary px-2 py-1 rounded text-xs mt-2">Read Full</button>
+                </div>
+                <!-- Обновлен цвет кнопки -->
+                <div id="t3" class="testimonial-card bg-white p-6 rounded-xl border hover:shadow-lg transition cursor-pointer" onclick="toggleTestimonial('t3')">
+                    <p class="italic text-gray-600">“Working with Masha was a pure pleasure—everything was clear, structured, and to the point...”</p>
+                    <div class="mt-4 font-bold">- Alina Panshina, Illustrator</div>
+                    <button class="read-more-btn bg-primary/20 text-primary px-2 py-1 rounded text-xs mt-2">Read Full</button>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white py-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="text-2xl font-bold mb-6">Let's engineer the next generation of AI learning together.</h2>
-            <div class="flex justify-center space-x-6 mb-8">
-                <a href="#" class="text-gray-400 hover:text-white transition-colors"><i class="fa-brands fa-linkedin text-2xl"></i></a>
-                <a href="#" class="text-gray-400 hover:text-white transition-colors"><i class="fa-solid fa-envelope text-2xl"></i></a>
-                <a href="#" class="text-gray-400 hover:text-white transition-colors"><i class="fa-brands fa-telegram text-2xl"></i></a>
-            </div>
-            <p class="text-gray-500 text-sm">© 2025 Maria's Portfolio. Developed for Tixu.ai.</p>
+    <footer class="bg-dark text-white py-12 text-center">
+        <div class="max-w-7xl mx-auto px-4">
+            <h2 class="text-2xl font-bold mb-4">Let's build the future of AI learning.</h2>
+            <p class="text-gray-400 text-sm">© 2025 Maria's Portfolio.</p>
         </div>
     </footer>
 
